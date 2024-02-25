@@ -1,5 +1,3 @@
-from math import sqrt
-
 """ 
 Task 2.
 - Implement A* search
@@ -9,6 +7,8 @@ Task 2.
 
 from graph import GRAPH
 from test import test, compare_tests, random_node, display
+from math import sqrt
+import heapq
 
 def graph_coords(graph):
     coords = {}
@@ -32,7 +32,7 @@ def graph_coords(graph):
     
     return coords
 
-def heuristic(graph, coords, start, end):
+def euclidean_heuristic(graph, coords, start, end):
     start_x, start_y = coords[start]
     end_x, end_y = coords[end]
 
@@ -42,7 +42,65 @@ def heuristic(graph, coords, start, end):
     dist = sqrt(x**2 + y**2)
     return dist
 
+def reconstruct_path(visited):
+    path = []
+
+    current_node = visited.pop(0)
+    next_node = current_node - set((None,))
+
+    while visited:
+        current_node = visited.pop(0)
+        new_node = current_node - set((None,))
+
+
+    return next_node
+
+    queue = [start]
+
+    while queue:
+        root = queue.pop(0)
+        if root in visited:
+            continue
+
+        visited.append(root)
+
+        if root is end:
+            return visited
+
+        siblings = graph[root]
+        queue.extend(siblings)
+        
+
+def a_search(graph, heuristic_f, start, end):
+    visited = []
+    heap = [(0 + heuristic_f(start, end), None, start)]
+
+    while heap:
+        weight, prev, root = heapq.heappop(heap)
+
+        if set((prev, root)) in visited:
+            print(f"visited {(prev, root)}")
+            continue
+
+        visited.append(set((prev, root)))
+
+        if root is end:
+            return reconstruct_path(visited)
+
+        siblings = graph[root]
+        for sibling in siblings:
+            new_weight = weight + heuristic_f(sibling, end)
+            heapq.heappush(heap, (new_weight, root, sibling))
+    
+
 if __name__ == "__main__":
+    coords = graph_coords(GRAPH)
+    print(coords)
+
+    def h(start, end):
+        return euclidean_heuristic(GRAPH, coords, start, end)
+
+    display(test(a_search, GRAPH, h, 1, 9))
     """
     # Test BFS 1 => 9
     test1 = display(test(bfs_recurse, GRAPH, 1, 9))
