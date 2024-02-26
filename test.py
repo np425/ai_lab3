@@ -26,9 +26,9 @@ def _fmt_visited(test_result):
 def _fmt_elapsed(test_result):
     return timedelta(seconds=test_result.t_elapsed)
 
-def test(search_algo, graph, heuristic_f, start, end):
+def test(search_algo, graph, next_f, heuristic_f, start, end):
     t_start = perf_counter()
-    path = search_algo(graph, heuristic_f, start, end)
+    path = search_algo(graph, next_f, heuristic_f, start, end)
     t_end = perf_counter()
     t_elapsed = t_end - t_start
     

@@ -42,23 +42,16 @@ def euclidean_heuristic(graph, coords, start, end):
     dist = sqrt(x**2 + y**2)
     return dist
 
-def reconstruct_path(visited):
-    path = []
+def node_distance(current, other):
+    return 1
 
-    current_node = visited.pop(0)
-    next_node = current_node - set((None,))
+def a_search(graph, distance_f, heuristic_f, start, end):
+    visited = []
+    heap = [(0 + heuristic_f(start, end), 0, None, start)]
 
-    while visited:
-        current_node = visited.pop(0)
-        new_node = current_node - set((None,))
+    while heap:
+        weight, dist, prev, root = heapq.heappop(heap)
 
-
-    return next_node
-
-    queue = [start]
-
-    while queue:
-        root = queue.pop(0)
         if root in visited:
             continue
 
@@ -68,119 +61,32 @@ def reconstruct_path(visited):
             return visited
 
         siblings = graph[root]
-        queue.extend(siblings)
-        
-
-def a_search(graph, heuristic_f, start, end):
-    visited = []
-    heap = [(0 + heuristic_f(start, end), None, start)]
-
-    while heap:
-        weight, prev, root = heapq.heappop(heap)
-
-        if set((prev, root)) in visited:
-            print(f"visited {(prev, root)}")
-            continue
-
-        visited.append(set((prev, root)))
-
-        if root is end:
-            return reconstruct_path(visited)
-
-        siblings = graph[root]
         for sibling in siblings:
-            new_weight = weight + heuristic_f(sibling, end)
-            heapq.heappush(heap, (new_weight, root, sibling))
+            new_dist = dist + distance_f(root, sibling)
+            new_weight = new_dist + heuristic_f(sibling, end)
+            heapq.heappush(heap, (new_weight, new_dist, root, sibling))
     
 
 if __name__ == "__main__":
     coords = graph_coords(GRAPH)
-    print(coords)
 
     def h(start, end):
         return euclidean_heuristic(GRAPH, coords, start, end)
 
-    display(test(a_search, GRAPH, h, 1, 9))
-    """
-    # Test BFS 1 => 9
-    test1 = display(test(bfs_recurse, GRAPH, 1, 9))
-    test2 = display(test(bfs_queue, GRAPH, 1, 9))
-    compare_tests('1=>9 bfs stack vs recurse', test1, test2)
+    display(test(a_search, GRAPH, node_distance, h, 1, 9))
 
-    recurse_tests = []
-    queue_tests = []
-
+    tests = []
     for start in GRAPH.keys():
         for end in GRAPH.keys():
-            recurse_tests.append(test(bfs_recurse, GRAPH, start, end))
-            queue_tests.append(test(bfs_queue, GRAPH, start, end))
+            tests.append(test(a_search, GRAPH, node_distance, h, start, end))
 
-    compare_tests('all bfs combinations recurse', *recurse_tests)
-    compare_tests('all bfs combinations queue', *queue_tests)
-    compare_tests('all bfs combinations recurse vs queue', *recurse_tests, *queue_tests)
+    compare_tests('all a* combinations', *tests)
 
-    # Test random paths
-    recurse_tests = []
-    queue_tests = []
-
+    tests = []
     for _ in range(10000):
         start = random_node(GRAPH)
         end = random_node(GRAPH)
 
-        queue_tests.append(test(bfs_queue, GRAPH, start, end))
-        recurse_tests.append(test(bfs_recurse, GRAPH, start, end))
+        tests.append(test(a_search, GRAPH, node_distance, h, start, end))
 
-    compare_tests('random bfs recurse', *recurse_tests)
-    compare_tests('random bfs queue', *queue_tests)
-    compare_tests('random bfs recurse vs queue', *recurse_tests, *queue_tests)
-
-    # Compare DFS vs BFS
-    dfs_recurse_tests = []
-    dfs_iterational_tests = []
-    bfs_recurse_tests = []
-    bfs_iterational_tests = []
-
-    for _ in range(10000):
-        start = random_node(GRAPH)
-        end = random_node(GRAPH)
-
-        dfs_recurse_tests.append(test(dfs_recurse, GRAPH, start, end))
-        dfs_iterational_tests.append(test(dfs_stack, GRAPH, start, end))
-
-        bfs_recurse_tests.append(test(bfs_recurse, GRAPH, start, end))
-        bfs_iterational_tests.append(test(bfs_queue, GRAPH, start, end))
-
-    compare_tests('BFS vs DFS', *dfs_recurse_tests, *dfs_iterational_tests, *bfs_recurse_tests, *bfs_iterational_tests)
-    """
-
-"""
-def bfs_recurse(graph, start, end, visited):
-    siblings = [start] + graph[start]
-    unexplored = [x for x in siblings if x not in visited]
-
-    for sibling in unexplored:
-        visited.append(sibling)
-        if sibling is end:
-            return visited
-
-    for sibling in unexplored:
-        found_path = bfs_recurse(graph, sibling, end, visited)
-        if found_path:
-            return found_path
-
-def bfs_queue(graph, start, end, visited):
-    queue = [start]
-
-    while queue:
-        root = queue.pop(0)
-        if root in visited:
-            continue
-
-        visited.append(root)
-
-        if root is end:
-            return visited
-
-        siblings = graph[root]
-        queue.extend(siblings)
-"""
+    compare_tests('random a* tests', *tests)
